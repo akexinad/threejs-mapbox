@@ -15,7 +15,7 @@ var map = window.map = new mapboxgl.Map({
 const coords = [-33.861073, 151.186000]
 
 // change the altitude and tower height simultaneously so the tower base stays pinned to the map.
-const towerHeight = 80;
+const towerHeight = 829;
 
 // parameters to ensure the tower is georeferenced correctly on the map
 var towerOrigin = [coords[1], coords[0]]; 
