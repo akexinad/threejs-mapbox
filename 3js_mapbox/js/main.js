@@ -14,43 +14,46 @@ var map = window.map = new mapboxgl.Map({
 // makes it easier to copy and paste inverted coords from google maps
 const coords = [-33.861073, 151.186000]
 
-// parameters to ensure the model is georeferenced correctly on the map
-var modelOrigin = [coords[1], coords[0]]; 
-var modelAltitude = 50;
-var modelRotate = [Math.PI / 2, 5, 0];
-var modelScale = 5.41843220338983e-8;
+// change the altitude and tower height simultaneously so the tower base stays pinned to the map.
+const towerHeight = 80;
 
-// transformation parameters to position, rotate and scale the 3D model onto the map
-var modelTransform = {
-    translateX: mapboxgl.MercatorCoordinate.fromLngLat(modelOrigin, modelAltitude).x,
-    translateY: mapboxgl.MercatorCoordinate.fromLngLat(modelOrigin, modelAltitude).y,
-    translateZ: mapboxgl.MercatorCoordinate.fromLngLat(modelOrigin, modelAltitude).z,
-    rotateX: modelRotate[0],
-    rotateY: modelRotate[1],
-    rotateZ: modelRotate[2],
-    scale: modelScale
+// parameters to ensure the tower is georeferenced correctly on the map
+var towerOrigin = [coords[1], coords[0]]; 
+var towerAltitude = towerHeight;
+var towerRotate = [Math.PI / 2, 5, 0];
+var towerScale = 5.41843220338983e-8;
+
+// transformation parameters to position, rotate and scale the 3D tower onto the map
+var towerTransform = {
+    translateX: mapboxgl.MercatorCoordinate.fromLngLat(towerOrigin, towerAltitude).x,
+    translateY: mapboxgl.MercatorCoordinate.fromLngLat(towerOrigin, towerAltitude).y,
+    translateZ: mapboxgl.MercatorCoordinate.fromLngLat(towerOrigin, towerAltitude).z,
+    rotateX: towerRotate[0],
+    rotateY: towerRotate[1],
+    rotateZ: towerRotate[2],
+    scale: towerScale
 };
 
 var THREE = window.THREE;
 
-// configuration of the custom layer for a 3D model per the CustomLayerInterface
+// configuration of the custom layer for a 3D tower per the CustomLayerInterface
 var customLayer = {
-    id: '3d-model',
+    id: '3d-tower',
     type: 'custom',
     renderingMode: '3d',
     onAdd: function(map, gl) {
         this.camera = new THREE.Camera();
         this.scene = new THREE.Scene();
 
-        // create two three.js lights to illuminate the model
+        // create two three.js lights to illuminate the tower
         var directionalLight = new THREE.DirectionalLight(0xffffff);
         directionalLight.position.set(0, -70, 100).normalize();
 
-        // var directionalLight2 = new THREE.DirectionalLight(0xffffff);
-        // directionalLight2.position.set(0, 70, 100).normalize();
+        var directionalLight2 = new THREE.DirectionalLight(0xffffff);
+        directionalLight2.position.set(0, 70, 100).normalize();
 
         function createTower() {
-            const geo = new THREE.BoxGeometry(30, 50, 40); // width, height, depth
+            const geo = new THREE.BoxGeometry(30, towerHeight, 40); // width, height, depth
             const mat = new THREE.MeshLambertMaterial({
                 color: "#D40000"
             });
@@ -62,13 +65,13 @@ var customLayer = {
         
         const tower = createTower();
 
-        this.scene.add(tower, directionalLight);
+        this.scene.add(tower, directionalLight, directionalLight2);
 
-        // use the three.js GLTF loader to add the 3D model to the three.js scene
-        var loader = new THREE.GLTFLoader();
-        loader.load('https://docs.mapbox.com/mapbox-gl-js/assets/34M_17/34M_17.gltf', (function (gltf) {
-            this.scene.add(gltf.scene);
-        }).bind(this));
+        // use the three.js GLTF loader to add the 3D tower to the three.js scene
+        // var loader = new THREE.GLTFLoader();
+        // loader.load('https://docs.mapbox.com/mapbox-gl-js/assets/34M_17/34M_17.gltf', (function (gltf) {
+        //     this.scene.add(gltf.scene);
+        // }).bind(this));
         this.map = map;
 
         // use the Mapbox GL JS map canvas for three.js
@@ -80,13 +83,13 @@ var customLayer = {
         this.renderer.autoClear = false;
     },
     render: function(gl, matrix) {
-        var rotationX = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(1, 0, 0), modelTransform.rotateX);
-        var rotationY = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), modelTransform.rotateY);
-        var rotationZ = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 0, 1), modelTransform.rotateZ);
+        var rotationX = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(1, 0, 0), towerTransform.rotateX);
+        var rotationY = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), towerTransform.rotateY);
+        var rotationZ = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 0, 1), towerTransform.rotateZ);
 
         var m = new THREE.Matrix4().fromArray(matrix);
-        var l = new THREE.Matrix4().makeTranslation(modelTransform.translateX, modelTransform.translateY, modelTransform.translateZ)
-            .scale(new THREE.Vector3(modelTransform.scale, -modelTransform.scale, modelTransform.scale))
+        var l = new THREE.Matrix4().makeTranslation(towerTransform.translateX, towerTransform.translateY, towerTransform.translateZ)
+            .scale(new THREE.Vector3(towerTransform.scale, -towerTransform.scale, towerTransform.scale))
             .multiply(rotationX)
             .multiply(rotationY)
             .multiply(rotationZ);
