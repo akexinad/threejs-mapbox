@@ -2,20 +2,17 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiYWtleGluYWQiLCJhIjoiY2p0aWJ1b3d1MG53dzQzcGY1e
 var map = window.map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/light-v10',
-    zoom: 17.5,
+    zoom: 15,
     center: [151.184089, -33.863516],
-    pitch: 60
+    pitch: 60,
+    bearing: -17.6
 });
-
-// =========================================== //
-// BUILDING A RECTANGLE USING THESE PARAMETERS //
-// =========================================== //
 
 // makes it easier to copy and paste inverted coords from google maps
 const coords = [-33.861073, 151.186000]
 
 // change the altitude and tower height simultaneously so the tower base stays pinned to the map.
-const towerHeight = 829;
+const towerHeight = 100;
 
 // parameters to ensure the tower is georeferenced correctly on the map
 var towerOrigin = [coords[1], coords[0]]; 
@@ -67,11 +64,6 @@ var customLayer = {
 
         this.scene.add(tower, directionalLight, directionalLight2);
 
-        // use the three.js GLTF loader to add the 3D tower to the three.js scene
-        // var loader = new THREE.GLTFLoader();
-        // loader.load('https://docs.mapbox.com/mapbox-gl-js/assets/34M_17/34M_17.gltf', (function (gltf) {
-        //     this.scene.add(gltf.scene);
-        // }).bind(this));
         this.map = map;
 
         // use the Mapbox GL JS map canvas for three.js
@@ -102,6 +94,42 @@ var customLayer = {
     }
 };
 
-map.on('style.load', function() {
+map.on('load', function() {
     map.addLayer(customLayer, 'waterway-label');
+
+    // Insert the layer beneath any symbol layer.
+    var layers = map.getStyle().layers;
+ 
+    var labelLayerId;
+    for (var i = 0; i < layers.length; i++) {
+        if (layers[i].type === 'symbol' && layers[i].layout['text-field']) {
+            labelLayerId = layers[i].id;
+            break;
+        }
+    }
+
+    // The 'building' layer in the mapbox-streets vector source contains building-height
+    // data from OpenStreetMap.
+    map.addLayer({
+        id: '3d-buildings',
+        source: 'composite',
+        'source-layer': 'building',
+        filter: ['==', 'extrude', 'true'],
+        type: 'fill-extrusion',
+        minzoom: 15,
+        paint: {
+            'fill-extrusion-color': '#778899',
+            // use an 'interpolate' expression to add a smooth transition effect to the
+            // buildings as the user zooms in
+            'fill-extrusion-height': [
+                "interpolate", ["linear"], ["zoom"],
+                15, 0,
+                15.05, ["get", "height"]
+            ],
+            'fill-extrusion-base': [
+                "interpolate", ["linear"], ["zoom"], 15, 0, 15.05, ["get", "min_height"]
+            ],
+                'fill-extrusion-opacity': .8
+        }
+    }, labelLayerId);
 });
