@@ -51,7 +51,7 @@ var customLayer = {
 
         function createTower() {
             const geo = new THREE.BoxGeometry(30, towerHeight, 40); // width, height, depth
-            const mat = new THREE.MeshLambertMaterial({
+            const mat = new THREE.MeshPhongMaterial({
                 color: "#D40000"
             });
             const mesh = new THREE.Mesh(geo, mat);
@@ -74,6 +74,7 @@ var customLayer = {
 
         this.renderer.autoClear = false;
     },
+
     render: function(gl, matrix) {
         var rotationX = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(1, 0, 0), towerTransform.rotateX);
         var rotationY = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(0, 1, 0), towerTransform.rotateY);
@@ -107,29 +108,4 @@ map.on('load', function() {
             break;
         }
     }
-
-    // The 'building' layer in the mapbox-streets vector source contains building-height
-    // data from OpenStreetMap.
-    map.addLayer({
-        id: '3d-buildings',
-        source: 'composite',
-        'source-layer': 'building',
-        filter: ['==', 'extrude', 'true'],
-        type: 'fill-extrusion',
-        minzoom: 15,
-        paint: {
-            'fill-extrusion-color': '#778899',
-            // use an 'interpolate' expression to add a smooth transition effect to the
-            // buildings as the user zooms in
-            'fill-extrusion-height': [
-                "interpolate", ["linear"], ["zoom"],
-                15, 0,
-                15.05, ["get", "height"]
-            ],
-            'fill-extrusion-base': [
-                "interpolate", ["linear"], ["zoom"], 15, 0, 15.05, ["get", "min_height"]
-            ],
-                'fill-extrusion-opacity': .8
-        }
-    }, labelLayerId);
 });
