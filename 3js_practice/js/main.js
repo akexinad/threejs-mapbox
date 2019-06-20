@@ -133,7 +133,7 @@ const light = createLight();
 const lightHelper = createLightHelper(light);
 
 // Add axes to the scene, so renderer can render it within the scene.
-scene.add(axes, floor, rectangle, sphere, light, lightHelper, object);
+scene.add(axes, floor, rectangle, sphere, light, lightHelper);
 
 addOrbitControls(camera, renderer);
 
