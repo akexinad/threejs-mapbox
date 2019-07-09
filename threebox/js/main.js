@@ -58,7 +58,7 @@ map.on('style.load', function() {
             let cube = createCube();
 
             function createPrism() {
-                const geometry = new THREE.BoxGeometry(200, 800, 200);
+                const geometry = new THREE.BoxGeometry(200, 800, 2000);
                 const material = new THREE.MeshLambertMaterial({
                     color: "#4d0000"
                 })
@@ -79,13 +79,94 @@ map.on('style.load', function() {
             let light = createLight();
             let light2 = createLight();
 
+            function createExtrusion(length, width, height) {
+                const shape = new THREE.Shape();
+                shape.moveTo( 0, 0 );
+                shape.lineTo( 0, width );
+                shape.lineTo( length, width );
+                shape.lineTo( length, 0 );
+                shape.lineTo( 0, 0 );
+
+                const extrudeSettings = {
+                    steps: 20,
+                    depth: height,
+                    bevelEnabled: true,
+                    // bevelThickness: 1,
+                    // bevelSize: 1,
+                    // bevelOffset: 0,
+                    // bevelSegments: 1
+                };
+
+                const geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+                const material = new THREE.MeshLambertMaterial({
+                    color: "brown"
+                });
+                const mesh = new THREE.Mesh( geometry, material );
+
+                return mesh;
+            }
+
+            const square = [
+                {
+                    X: 500,
+                    Y: 0
+                },
+                {
+                    X: 500,
+                    Y: 500
+                },
+                {
+                    X: 0,
+                    Y: 500
+                },
+                {
+                    X: 0,
+                    Y: 0
+                }
+            ];
+
+            // console.log(pol);
+            // pol.forEach(vertice => console.log(vertice.X, vertice.Y));
+
+            console.log(polygonData);
+            
+            polygonData.forEach( vertice => console.log(vertice.X, vertice.Y ));
+            
+            function extrudePolygon(polygon, height) {
+                const shape = new THREE.Shape();
+                shape.moveTo(polygon[0].X, polygon[0].Y);
+                polygon.forEach( vertice => shape.lineTo( vertice.X, vertice.Y ));
+                
+                const extrudeSettings = {
+                    steps: 20,
+                    depth: height,
+                    bevelEnabled: false,
+                    // bevelThickness: 1,
+                    // bevelSize: 1,
+                    // bevelOffset: 0,
+                    // bevelSegments: 1
+                };
+
+                const geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+                const material = new THREE.MeshLambertMaterial({
+                    color: "#D40000"
+                });
+                const mesh = new THREE.Mesh( geometry, material );
+
+                return mesh;
+            }
+
+            let extrusion = createExtrusion(300, 600, 1000);
+            let polygonModel = extrudePolygon(polygonData, 1000);
+
+
             // the returned THREE mesh is then passed into the THREEBOX Object3d method.
             // Coordinates and rotation properties are also set.
             cube = tb.Object3D({
                 obj: cube,
                 units: 'meters',
             })
-            .setCoords(coords.siena)
+            .setCoords(coords.monteriggioni)
             .set(rotate())
             
             rectangle = tb.Object3D({
@@ -115,12 +196,21 @@ map.on('style.load', function() {
             })
             .setCoords(coords.marcialla)
 
-            // Added to the map
-            tb.add(cube);
-            tb.add(rectangle);
-            tb.add(sphere);
-            tb.add(light);
-            tb.add(light2);
+            // extrusion = tb.Object3D({
+            //     obj: extrusion,
+            //     units: 'meters'
+            // })
+            // .setCoords(coords.monteriggioni)
+
+            polygonModel = tb.Object3D({
+                obj: polygonModel,
+                units: 'meters'
+            })
+            .setCoords(coords.siena)
+
+            const objArr = [polygonModel, cube, rectangle, sphere, light, light2]
+            
+            objArr.forEach( object => tb.add(object) );
         },
         
         render: function(gl, matrix){
