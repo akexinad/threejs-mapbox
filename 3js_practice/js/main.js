@@ -94,6 +94,30 @@ function createSphere() {
     return mesh;
 }
 
+var length = 12, width = 8;
+
+var shape = new THREE.Shape();
+shape.moveTo( 40,40 );
+shape.lineTo( 40, width );
+shape.lineTo( length, width );
+shape.lineTo( length, 40 );
+shape.lineTo( 40, 40 );
+
+var extrudeSettings = {
+	steps: 20,
+	depth: 5,
+	bevelEnabled: false,
+	// bevelThickness: 1,
+	// bevelSize: 1,
+	// bevelOffset: 0,
+	// bevelSegments: 1
+};
+
+var geometry = new THREE.ExtrudeBufferGeometry( shape, extrudeSettings );
+var material = new THREE.MeshLambertMaterial( { color: 'yellow' } );
+var extrusion = new THREE.Mesh( geometry, material ) ;
+// scene.add( mesh );
+
 function createLight() {
     const pointLight = new THREE.PointLight("#FFFFFF", 1.2); // color, brightness
     pointLight.position.x = 4;
@@ -133,7 +157,7 @@ const light = createLight();
 const lightHelper = createLightHelper(light);
 
 // Add axes to the scene, so renderer can render it within the scene.
-scene.add(axes, floor, rectangle, sphere, light, lightHelper);
+scene.add(axes, floor, rectangle, sphere, light, lightHelper, extrusion);
 
 addOrbitControls(camera, renderer);
 
